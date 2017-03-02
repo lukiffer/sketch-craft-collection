@@ -1,0 +1,84 @@
+var onRun = function (context) {
+
+  var doc = doc || context.document;
+  var collectionLayer = null;
+  var collectionWidth = 0;
+  var collectionHeight = 0;
+
+  // RESOURCE FUNCTIONS
+  function alert(message) {
+    var alertDialog = [[NSAlert alloc] init];
+    [alertDialog setMessageText:message]
+    [alertDialog addButtonWithTitle: 'OK'];
+    return [alertDialog runModal];
+  }
+
+  function log(message) {
+    [doc showMessage:message];
+  }
+
+  function processAllLayers(payload) {
+    var pages = [doc pages];
+    for (var i = 0; i < [pages count]; i++) {
+      var currentPage = [pages objectAtIndex:i];
+      var artboards = [currentPage artboards];
+      if ([artboards count]) {
+        for (var j = 0; j < [artboards count]; j++) {
+          var artboard = [artboards objectAtIndex:j];
+          if ([artboard className] == 'MSSymbolMaster') {
+            payload(artboard, collectionKey);
+          }
+        }
+      }
+    }
+  }
+
+  function findCollectionLayer(layer, collectionKey) {
+    if ([layer name].indexOf('Collections\/' + collectionKey) == 0) {
+      // This is the collection layer. Save a reference to it.
+      collectionLayer = layer;
+    }
+  }
+
+  function appendToCollection(layer, collectionKey) {
+    var layerName = [layer name];
+
+    if (layerName.indexOf(collectionKey) == 0) {
+      log('Processing symbol: ' + layerName);
+
+      var instance = layer.newSymbolInstance();
+      var instances = [];
+      instances.push(instance);
+      collectionLayer.addLayers(instances);
+
+      instance.setAbsolutePosition_(CGPointMake(collectionLayer.absolutePosition().x + collectionWidth, collectionLayer.absolutePosition().y));
+      
+      var instanceWidth = instance.frame().width();
+      collectionWidth += instanceWidth;
+
+      var instanceHeight = instance.frame().height();
+      if (instanceHeight > collectionHeight) {
+        collectionHeight = instanceHeight;
+      }
+
+      log('Added an instance of "' + [instance name] + '" to the ' + collectionKey + ' collection.');
+    }
+  }
+
+  var collectionKey = [doc askForUserInput:'Enter the search prefix for symbols you want to include.' initialValue:''];
+  log('Looking for symbols prefixed with "' + collectionKey + '"...');
+
+  processAllLayers(findCollectionLayer);
+
+  if (collectionLayer == null) {
+    var message = 'There is no collection symbol "Collections\/' + collectionKey;
+    alert(message);
+    throw(message);
+  }
+  collectionLayer.removeAllLayers();
+  processAllLayers(appendToCollection);
+
+  // Reset the frame dimensions of the collection symbol.
+  collectionLayer.frame().height = collectionHeight;
+  collectionLayer.frame().width = collectionWidth;
+};

@@ -1,0 +1,24 @@
+{
+  "name": "Craft Collections",
+  "description": "Create collections of symbols automatically for your Craft library.",
+  "author": "Luke Fritz",
+  "homepage": "https://github.com/lukiffer/craft-collections",
+  "version": 1.0,
+  "identifier": "com.lukefritz.sketch.craft-collections",
+  "compatibleVersion": 3,
+  "bundleVersion": 1,
+  "commands": [
+    {
+      "script": "generate.cocoascript",
+      "name": "Generate Collection",
+      "identifier": "generate-collection",
+      "shortcut": "cmd ctrl shift g"
+    }
+  ],
+  "menu": {
+    "items": [
+      "generate-collection"
+    ],
+    "title": "Craft Collections"
+  }
+}
